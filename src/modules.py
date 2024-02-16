@@ -24,17 +24,17 @@ class PositionalEncoding(nn.Module):
         self.seq_len = seq_len
         self.dropout = nn.Dropout(dropout)
 
-        self.pe = torch.zeros(seq_len, d_model)
+        pe = torch.zeros(seq_len, d_model)
         position = torch.arange(0, seq_len).unsqueeze(1)
         div_term = torch.exp(
             torch.arange(0, d_model, 2).float() * (
                     -math.log(10000.0) / d_model)
         )
 
-        self.pe[:, 0::2] = torch.sin(position * div_term)
-        self.pe[:, 1::2] = torch.cos(position * div_term)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
 
-        self.register_buffer('pe', self.pe.unsqueeze(0))
+        self.register_buffer('pe', pe.unsqueeze(0))
 
     def forward(self, x: torch.Tensor):
         x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False)
@@ -186,8 +186,8 @@ class Transformer(nn.Module):
     def __init__(self, src_vocab_size, tgt_vocab_size, d_model, num_heads,
                  num_layers, d_ff, max_seq_len, dropout):
         super(Transformer, self).__init__()
-        self.encoder_embedding = InputEmbedding(src_vocab_size, d_model)
-        self.decoder_embedding = InputEmbedding(tgt_vocab_size, d_model)
+        self.encoder_embedding = InputEmbedding(d_model, src_vocab_size)
+        self.decoder_embedding = InputEmbedding(d_model, tgt_vocab_size)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_len, dropout)
 
         self.encoder_layers = []
@@ -219,8 +219,8 @@ class Transformer(nn.Module):
     def forward(self, src, tgt):
         src_mask, tgt_mask = self.generate_mask(src, tgt)
 
-        src_embedding = self.dropout(self.positional_encoding(self.encoder_embedding(src_mask)))
-        tgt_embedding = self.dropout(self.positional_encoding(self.decoder_embedding(tgt_mask)))
+        src_embedding = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
+        tgt_embedding = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
 
         encoder_output = src_embedding
         for layer in self.encoder_layers:
