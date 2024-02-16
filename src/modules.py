@@ -27,7 +27,8 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(seq_len, d_model)
         position = torch.arange(0, seq_len).unsqueeze(1)
         div_term = torch.exp(
-            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+            torch.arange(0, d_model, 2).float()
+            * (-math.log(10000.0) / d_model)
         )
 
         pe[:, 0::2] = torch.sin(position * div_term)
@@ -137,7 +138,9 @@ class EncoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask):
-        attn_out = self.self_attention_block(query=x, key=x, value=x, mask=mask)
+        attn_out = self.self_attention_block(
+            query=x, key=x, value=x, mask=mask
+        )
         x = x + self.dropout(attn_out)
         x = self.norm_1(x)
 
@@ -160,7 +163,9 @@ class DecoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, enc_output, src_mask, tgt_mask):
-        attn_output = self.self_attention_block(query=x, key=x, value=x, mask=tgt_mask)
+        attn_output = self.self_attention_block(
+            query=x, key=x, value=x, mask=tgt_mask
+        )
         x = x + self.dropout(attn_output)
         x = self.norm_1(x)
 
@@ -192,16 +197,22 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.encoder_embedding = InputEmbedding(d_model, src_vocab_size)
         self.decoder_embedding = InputEmbedding(d_model, tgt_vocab_size)
-        self.positional_encoding = PositionalEncoding(d_model, max_seq_len, dropout)
+        self.positional_encoding = PositionalEncoding(
+            d_model, max_seq_len, dropout
+        )
 
         self.encoder_layers = []
         for _ in range(num_layers):
-            self.encoder_layers.append(EncoderBlock(d_model, num_heads, d_ff, dropout))
+            self.encoder_layers.append(
+                EncoderBlock(d_model, num_heads, d_ff, dropout)
+            )
         self.encoder_layers = nn.ModuleList(self.encoder_layers)
 
         self.decoder_layers = []
         for _ in range(num_layers):
-            self.decoder_layers.append(DecoderBlock(d_model, num_heads, d_ff, dropout))
+            self.decoder_layers.append(
+                DecoderBlock(d_model, num_heads, d_ff, dropout)
+            )
         self.decoder_layers = nn.ModuleList(self.decoder_layers)
 
         self.fc_out = nn.Linear(d_model, tgt_vocab_size)
@@ -236,7 +247,9 @@ class Transformer(nn.Module):
 
         decoder_output = tgt_embedding
         for layer in self.decoder_layers:
-            decoder_output = layer(decoder_output, encoder_output, src_mask, tgt_mask)
+            decoder_output = layer(
+                decoder_output, encoder_output, src_mask, tgt_mask
+            )
 
         output = self.fc_out(decoder_output)
 
