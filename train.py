@@ -1,3 +1,5 @@
+import argparse
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,7 +15,7 @@ def generate_sample_data(src_vocab_size, tgt_vocab_size, max_seq_len,
     return src_data, tgt_data
 
 
-def train(model, src_data, tgt_data):
+def train(model, src_data, tgt_data, tgt_vocab_size):
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.99),
                            eps=1e-09)
@@ -30,36 +32,45 @@ def train(model, src_data, tgt_data):
         loss.backward()
         optimizer.step()
 
-        print('Epoch: {}, Loss: {}'.format(epoch+1, loss.item()))
+        print('Epoch: {}, Loss: {}'.format(epoch + 1, loss.item()))
 
 
-if __name__ == '__main__':
-    print('STARTING TRAINING')
-
-    src_vocab_size, tgt_vocab_size = 5000, 5000
-    d_model = 512
-    num_heads = 8
-    num_layers = 6
-    d_ff = 2048
-    max_seq_len = 100
-    dropout = 0.1
-
+def main(args):
     src_data, tgt_data = generate_sample_data(
-        src_vocab_size,
-        tgt_vocab_size,
-        max_seq_len,
-        num_samples=64
+        args.src_vocab_size,
+        args.tgt_vocab_size,
+        args.max_seq_len,
+        args.num_samples
     )
 
     transformer = Transformer(
-        src_vocab_size=src_vocab_size,
-        tgt_vocab_size=tgt_vocab_size,
-        d_model=d_model,
-        num_heads=num_heads,
-        num_layers=num_layers,
-        d_ff=d_ff,
-        max_seq_len=max_seq_len,
-        dropout=dropout
+        src_vocab_size=args.src_vocab_size,
+        tgt_vocab_size=args.tgt_vocab_size,
+        d_model=args.dim,
+        num_heads=args.num_heads,
+        num_layers=args.num_layers,
+        d_ff=args.d_ff,
+        max_seq_len=args.max_seq_len,
+        dropout=args.dropout
     )
 
-    train(transformer, src_data, tgt_data)
+    train(transformer, src_data, tgt_data, args.tgt_vocab_size)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser("Train an encoder-decoder Transformer.")
+
+    parser.add_argument('--dim', type=int, default=512)
+    parser.add_argument('--num_heads', type=int, default=8)
+    parser.add_argument('--num_layers', type=int, default=6)
+    parser.add_argument('--max_seq_len', type=int, default=128)
+    parser.add_argument('--d_ff', type=int, default=2048)
+    parser.add_argument('--dropout', type=float, default=0.1)
+
+    parser.add_argument('--src_vocab_size', type=int, default=500)
+    parser.add_argument('--tgt_vocab_size', type=int, default=500)
+    parser.add_argument('--num_samples', type=int, default=64)
+
+    print(parser.parse_args())
+
+    main(parser.parse_args())
