@@ -105,3 +105,24 @@ The actual implementation often combines the projections for all heads into sing
 
 This makes implementation more efficient while maintaining the same mathematical properties.
 
+## Input Embeddings
+
+The input embedding layer serves three crucial purposes in transformer architectures:
+
+1. **Token to Vector Conversion**
+   - Converts discrete tokens (e.g., words or subwords) into continuous vector representations
+   - Maps each token to a dense vector of dimension d_model
+   - These vectors are learned during training
+
+2. **Semantic Information**
+   - Similar tokens get similar vector representations
+   - Captures semantic relationships between tokens
+   - Example: "king" and "queen" will have similar embeddings
+
+3. **Dimensionality Alignment**
+   - Ensures all tokens are represented in the same vector space
+   - Matches the dimension (d_model) expected by the transformer layers
+   - Typically 512 or 768 dimensions in practice
+
+The embedding vectors serve as the foundation for all subsequent transformer operations, including self-attention and feed-forward layers.
+
